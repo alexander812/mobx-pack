@@ -2,13 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 class BaseComponent extends React.Component {
-
     static contextTypes = {
-        store: PropTypes.object,
+      store: PropTypes.object,
     };
 
     render() {
-        return null;
+      return null;
     }
 }
 
