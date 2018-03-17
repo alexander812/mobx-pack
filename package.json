@@ -1,7 +1,7 @@
 {
   "name": "mobx-pack",
   "version": "1.0.0",
-  "description": "Library for creating application based on Mobx",
+  "description": "Library for creating application based on Mobx 11",
   "main": "index.js",
   "author": "Space307",
   "license": "MIT",
