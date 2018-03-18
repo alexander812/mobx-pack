@@ -15,7 +15,7 @@ const makeAppConfig = (env = {}) => ({
     },
     output: {
         path: __dirname,
-        filename: 'bundle.js',
+        filename: 'index.js',
         publicPath: '/static/'
     },
     watch: NODE_ENV == 'development',
