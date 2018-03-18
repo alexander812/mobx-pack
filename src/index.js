@@ -1,4 +1,4 @@
 import Binder from './lib/Binder.js';
 
 
-export default Binder;
+module.exports = Binder;
