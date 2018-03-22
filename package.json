@@ -6,7 +6,7 @@
   "author": "Space307",
   "license": "MIT",
   "scripts": {
-    "build": "babel src/lib/ --out-file index.js",
+    "build": "babel src/lib/ --out-dir lib --copy-files",
     "prepublish": "npm run build"
   },
   "dependencies": {
