@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { toJS } from 'mobx';
-import { protoName } from 'util/util.js';
+import { protoName } from './util.js';
 
 
 class Binder {

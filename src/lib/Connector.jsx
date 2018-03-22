@@ -1,6 +1,5 @@
 import React from 'react';
 import { observer } from 'mobx-react';
-import { toJS } from 'mobx';
 import _ from 'lodash';
 import { getUid, protoName } from './util';
 import PropTypes from 'prop-types';
