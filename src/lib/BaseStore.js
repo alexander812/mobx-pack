@@ -1,3 +1,8 @@
+/**
+ отличия от боевого файла:
+ - ворзвращается не функция а класс принимающий объект context
+ - поле appBinder переименовано в биндер
+ */
 import _ from 'lodash';
 import { observable } from 'mobx';
 import { protoName } from './util.js';
@@ -13,17 +18,11 @@ const ON_START = 'onStart';
 const ON_STOP = 'onStop';
 
 
-
-
 export default class BaseStore {
   disposers = [];
   disposerKeys = {};
-  appBinder;
+  binder;
   mounted = false;
-  /**
-   * serviceStatus = sleep | starting | started | stopping | stopped | fail
-   * @type {string}
-   */
   @observable serviceStatus = STATUS_SERVICE_SLEEP;
   @observable serviceReady = false;
   @observable serviceWasStarted = false;
@@ -32,11 +31,11 @@ export default class BaseStore {
   alreadyStopping = false;
   initiators = [];
 
-  constructor(appBinder, serviceStarter){
-
-    this.appBinder = appBinder;
-    this.serviceStarter = serviceStarter;
-
+  constructor(context) {
+    if (context) {
+      this.binder = context.binder;
+      this.serviceStarter = context.serviceStarter;
+    }
   }
 
   start(initiatorId) {
@@ -208,7 +207,7 @@ export default class BaseStore {
 
   addObserve(obsr, key, services) {
     let result;
-    if (!services || !this.appBinder .addDisposer(this.getConfig().bindAs, services, obsr)) {
+    if (!services || !this.binder.addDisposer(this.getConfig().bindAs, services, obsr)) {
       this.disposers.push(obsr);
 
       if (this.disposerKeys[key]) {
@@ -254,9 +253,8 @@ export default class BaseStore {
    * @param {object} bindData
    */
   bindApp() {
-
     if (Object.prototype.hasOwnProperty.call(this.getConfig(), 'bindAs')) {
-      this.appBinder .bind(this, this.getConfig().importData);
+      this.binder.bind(this, this.getConfig().importData);
     } else {
       console.warn(`Base Store. ${protoName(this)} has no bindAs in config`);
     }
@@ -267,11 +265,11 @@ export default class BaseStore {
    */
   unbindApp() {
     if (this.getConfig().bindAs) {
-      this.appBinder .unbind(this);
+      this.binder.unbind(this);
     }
   }
   callApi(from, methodName, ...arg) {
-    return this.appBinder .callApi(from, methodName, this.getConfig().bindAs, ...arg);
+    return this.binder.callApi(from, methodName, this.getConfig().bindAs, ...arg);
   }
 
   getConfig() {
@@ -279,7 +277,7 @@ export default class BaseStore {
   }
 
   importVar(from, varName, raw) {
-    return this.appBinder .importVar(from, varName, this.getConfig().bindAs, raw);
+    return this.binder.importVar(from, varName, this.getConfig().bindAs, raw);
   }
 
   /**
@@ -309,7 +307,5 @@ export default class BaseStore {
     });
     this.unbindApp();
   }
-};
-
-
+}
 
