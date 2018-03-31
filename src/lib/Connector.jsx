@@ -104,7 +104,7 @@ function ConnectorF(Component, opt = {}) {
         each(store.api, (value, key) => {
           if (typeof value === 'function') {
             api[key] = function (...arg) {
-              return store.appBinder.callApi(store.getConfig().bindAs, key, componentId, ...arg);
+              return store.binder.callApi(store.getConfig().bindAs, key, componentId, ...arg);
             };
           } else {
             console.warn(`Connector. For "${Component.name}" api 
