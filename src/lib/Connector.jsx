@@ -1,8 +1,8 @@
 import React from 'react';
-import { observer } from 'mobx-react';
-import _ from 'lodash';
-import { getUid, protoName } from './util';
 import PropTypes from 'prop-types';
+import { observer } from 'mobx-react';
+import { each, forIn } from 'lodash';
+import { getUid, protoName } from './util.js';
 
 
 function ConnectorF(Component, opt = {}) {
@@ -13,9 +13,8 @@ function ConnectorF(Component, opt = {}) {
   }, opt);
 
 
-@observer class Connector extends React.Component {
+  @observer class Connector extends React.Component {
     static displayName = (Component.displayName && `${Component.displayName}Connector`) || `${Component.name}Connector`;
-  // static defaultProps = Component.defaultProps || {};
 
     static childContextTypes = {
       store: PropTypes.object,
@@ -36,19 +35,9 @@ function ConnectorF(Component, opt = {}) {
       this.options = options;
       this.componentId = `${Component.name}_${getUid()}`;
 
-      // console.log(['componentId', this.componentId]);
-
       if (this.options.services.length) {
         Promise.all(
-          this.options.services.map((service) => {
-            if (this.options.test) {
-              console.log(['service', service]);
-            }
-            if (!service) {
-              console.log(['this.componentId', this.options.services, this.componentId]);
-            }
-            return service.start(this.componentId);
-          }),
+          this.options.services.map(service => service.start(this.componentId)),
         ).then(() => {
           this.initComponent();
 
@@ -63,77 +52,63 @@ function ConnectorF(Component, opt = {}) {
       }
     }
 
-    initComponent() {
-      this.servicesLoaded = true;
-      // TODO remove options, stores
-      this.toDestroy = [];
-      this.storesResolved = [];
-      this.apiResolved = null;
-
-      this.resolveStores(options.store || this.props.store);
-      this.resolveApi();
-
-      this.store = this.storesResolved[0];
-    }
-
-    shouldComponentUpdate(...arg) {
-      let pass = false;
-
-      if (this.options && this.options.shouldComponentUpdate) {
-        pass = this.options.shouldComponentUpdate.apply(this, arg);
-      }
-
-      return pass;
-    }
-
     componentWillUnmount() {
-      this.toDestroy.forEach((resolved) => {
-        if (resolved.destroy) {
-          resolved.destroy();
-        }
-      });
+      if (this.store && this.store.destroy && this.storeInitializator) {
+        this.store.destroy();
+      }
 
       if (this.options.services) {
         this.options.services.forEach((service) => {
-          service.stop(this.componentId);
+          if (!service.config.unstoppable) {
+            service.stop(this.componentId);
+          }
         });
       }
     }
+
+    initComponent() {
+      this.servicesLoaded = true;
+      this.apiResolved = null;
+      this.storeInitializator = this.options.store && typeof this.options.store === 'function';
+      this.store = this.resolveStore(this.options.store || this.props.store); // eslint-disable-line
+
+      if (this.store && this.store.start) {
+        this.store.start(this.componentId);
+      }
+      this.resolveApi(this.store);
+    }
+
+    servicesLoaded = false;
+    options = {};
+    componentId = '';
+    apiResolved = null;
+    storeInitializator = false;
+    store = null;
 
     resolveStore(store) {
-      const resolved = typeof store === 'function' ? store.call(this) : store;
+      const storeToResolve = store || this.context.store;
+      const resolved = typeof storeToResolve === 'function' ? storeToResolve.call(this) : storeToResolve;
 
-      if (typeof store === 'function') {
-        if (resolved) {
-          this.toDestroy.push(resolved);
-        } else {
-          console.warn(`In connector for "${Component.name}" store not resolved"`);
-        }
+      if (typeof store === 'function' && !resolved) {
+        console.warn(`Connector. In component "${Component.name}" store not resolved"`);
       }
 
-      this.storesResolved.push(resolved);
+      return resolved;
     }
 
-    resolveStores(stores) {
-      if (Array.isArray(stores)) {
-        stores.forEach((item) => {
-          this.resolveStore(item);
-        });
-      } else {
-        this.resolveStore(stores || this.context.store);
-      }
-    }
-
-    resolveApi() {
-      const store = this.storesResolved.length ? this.storesResolved[0] : null;
+    resolveApi(store) {
       const api = {};
+      const componentId = this.componentId;
 
       if (store && store.api) {
-        _.each(store.api, (value, key) => {
+        each(store.api, (value, key) => {
           if (typeof value === 'function') {
-            api[key] = value.bind(store);
+            api[key] = function (...arg) {
+              return store.appBinder.callApi(store.getConfig().bindAs, key, componentId, ...arg);
+            };
           } else {
-            console.warn(`In connector for "${Component.name}" api function "${key}" not found in store "${protoName(store)}"`);
+            console.warn(`Connector. For "${Component.name}" api 
+            function "${key}" not found in store "${protoName(store)}"`);
           }
         });
         this.apiResolved = api;
@@ -150,17 +125,17 @@ function ConnectorF(Component, opt = {}) {
         helper = typeof o === 'function' ? o : o.helper;
       }
 
-      _.each(this.props, (value, key) => {
+      each(this.props, (value, key) => {
         if (key !== 'store') {
           result[key] = value;
         }
       });
 
       if (helper) {
-        composed = helper.apply(this, this.storesResolved);
-        _.forIn(composed, (item, key) => {
+        composed = helper.call(this, this.store);
+        forIn(composed, (item, key) => {
           if (result[key]) {
-            console.warn(`In connector for "${Component.name}" variable name "${key}" exists in the helper and props.`);
+            console.warn(`Connector. For "${Component.name}" variable name "${key}" exists in the helper and props.`);
           }
           result[key] = item;
         });
@@ -168,7 +143,6 @@ function ConnectorF(Component, opt = {}) {
         return composed !== undefined ? result : undefined;
       }
 
-      // return this.storesResolved;
       return result;
     }
 
@@ -189,9 +163,9 @@ function ConnectorF(Component, opt = {}) {
 
       return comp;
     }
-}
+  }
 
-return Connector;
+  return Connector;
 }
 
 export default ConnectorF;
