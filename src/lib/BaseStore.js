@@ -43,9 +43,11 @@ export default class BaseStore {
 
     return waitFor
       ?
-      waitFor.then(() => {
-        this.startDo(initiatorId, this.serviceStarter);
-      })
+      new Promise((resolve, reject) => waitFor.then(() => {
+        this.startDo(initiatorId, this.serviceStarter)
+          .then(() => resolve())
+          .catch((error) => reject(error));
+      }))
       :
       this.startDo(initiatorId, this.serviceStarter);
   }
