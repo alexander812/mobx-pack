@@ -3,18 +3,17 @@ export function getUid() {
 }
 
 export function setCookie(key, value, sec, host) {
-  let dateStr;
-  let currentDate = new Date();
+  const currentDate = new Date();
 
   host = host || 'olymptrade.com';
   currentDate.setTime(currentDate.getTime() + (1000 * sec));
-  dateStr = currentDate.toGMTString();
+  const dateStr = currentDate.toGMTString();
   document.cookie = `${key}=${JSON.stringify(value)}; expires=${dateStr}; path=/; domain=.${host}`;
 }
 
 export function getCookie(name) {
-  let cookie = ` ${document.cookie}`;
-  let search = ` ${name}=`;
+  const cookie = ` ${document.cookie}`;
+  const search = ` ${name}=`;
   let setStr = null;
   let offset = 0;
   let end = 0;

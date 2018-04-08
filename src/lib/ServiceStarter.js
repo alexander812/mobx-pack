@@ -1,7 +1,6 @@
 import _ from 'lodash';
 
 export default class ServiceStarter {
-
   stratedServices = {};
   waiters = {};
 
@@ -69,7 +68,7 @@ export default class ServiceStarter {
     }
     this.waiters[expected].push({ waiterService, resolve, reject });
   }
-
+  /* eslint-disable */
   goByChain(hash, entry, currentPoint, chain) {
     if (!chain[currentPoint]) {
       chain[currentPoint] = 1;
@@ -85,6 +84,7 @@ export default class ServiceStarter {
       }
     }
   }
+  /* eslint-enable */
   chekDeps(bindAs, waitFor, waiters) {
     let result = false;
     const chain = {};

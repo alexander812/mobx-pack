@@ -100,7 +100,7 @@ class Binder {
   }
 
   isDebug(bindAs) {
-    var s = this.getStore(bindAs).store;
+    const s = this.getStore(bindAs).store;
     return s && s.config ? s.config.debug : false;
   }
 
@@ -110,28 +110,27 @@ class Binder {
 
       if (importData[from.bindAs]) {
         _.each(importData[from.bindAs], (toVarName, fromVarName) => {
-
-
-
           if (!(fromVarName in from.store)) {
-
-            this.showMessage(`Variable "${fromVarName}" required for "${to.bindAs}" not found in "${from.bindAs}"`, 'warn');
+            this.showMessage(`Variable "${fromVarName}" required for "${to.bindAs}" 
+            not found in "${from.bindAs}"`, 'warn');
             return;
           }
 
           if (toVarName in to.store) {
-            this.showMessage(`Trying create link from "${from.bindAs}.${fromVarName}" to "${to.bindAs}.${toVarName}", but variable "${toVarName}" is already exist in "${to.bindAs}"`, 'warn');
+            this.showMessage(`Trying create link from "${from.bindAs}.${fromVarName}" 
+            to "${to.bindAs}.${toVarName}", but variable "${toVarName}" is already exist in "${to.bindAs}"`, 'warn');
             return;
           }
 
           Object.defineProperty(to.store, toVarName, { get: () => {
-              if (this.isDebug(to.bindAs)) {
-                this.showMessage(`Variable "${fromVarName}" from "${from.bindAs}" was taken by "${to.bindAs}" with name "${toVarName}"`);
-              }
+            if (this.isDebug(to.bindAs)) {
+              this.showMessage(`Variable "${fromVarName}" from "${from.bindAs}" 
+              was taken by "${to.bindAs}" with name "${toVarName}"`);
+            }
 
-              return from.store[fromVarName];
-            },
-            configurable: true,
+            return from.store[fromVarName];
+          },
+          configurable: true,
           });
         });
       }
@@ -259,7 +258,8 @@ class Binder {
       exportData = store.getConfig().exportData;
 
       if (exportData && !exportData[varName]) {
-        console.warn(`Warnning! Impossible import variable "${varName}" of "${store.getConfig().bindAs}" for "${initiator}" because variable is not included to config.exportData.`);
+        console.warn(`Warnning! Impossible import variable "${varName}" of 
+        "${store.getConfig().bindAs}" for "${initiator}" because variable is not included to config.exportData.`);
         return;
       }
 
@@ -267,12 +267,12 @@ class Binder {
       if (store.getConfig().debug) {
         console.log(`Binder. "${initiator}" import variable "${varName}" from "${storeName}".`, val);
       }
-      return raw ? val : toJS(val);
+      return raw ? val : toJS(val); // eslint-disable-line
     }
 
     console.warn(`Warnning! importVar form "${protoName(this)}" to "${initiator}". "${storeName}" store not found.`);
 
-    return undefined;
+    return undefined; // eslint-disable-line
   }
 
   /**
@@ -284,8 +284,7 @@ class Binder {
    * @param {array} arg
    */
   callApi(storeName, actionName, initiator, ...arg) {
-
-    if(process.env.NODE_ENV === 'test'){
+    if (process.env.NODE_ENV === 'test') {
       return;
     }
     const s = this.getStore(storeName);
@@ -299,17 +298,16 @@ class Binder {
       }
 
       if (storeInst.api && storeInst.api[actionName]) {
-        return storeInst.api[actionName].apply(storeInst, arg);
-      } else {
-        console.warn(`CallApi warn. "${initiator}" calls unknown method "${actionName}" found in store "${storeName}".`);
+        return storeInst.api[actionName].apply(storeInst, arg); // eslint-disable-line
       }
+      console.warn(`CallApi warn. "${initiator}" calls unknown method "${actionName}" found in store "${storeName}".`);
+
 
       // s.store[actionName].apply(s.store, arg);
     } else {
       console.warn(`CallApi warn. "${initiator}" calls method "${actionName}" from not bind store "${storeName}".`);
     }
   }
-
 }
 
 export default Binder;

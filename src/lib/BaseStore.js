@@ -61,7 +61,7 @@ export default class BaseStore {
         this.startOk(resolve);
       })
       :
-      new Promise((resolve, reject) => {
+      new Promise((resolve, reject) => { // eslint-disable-line
         if (!initiatorId) {
           reject(`Start service "${protoName(this)}" error. No initiator id.`);
         } else if (this.serviceStatus !== STATUS_SERVICE_SLEEP &&

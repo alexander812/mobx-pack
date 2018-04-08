@@ -13,7 +13,7 @@ function ConnectorF(Component, opt = {}) {
   }, opt);
 
 
-  @observer class Connector extends React.Component {
+  return observer(class Connector extends React.Component {
     static displayName = (Component.displayName && `${Component.displayName}Connector`) || `${Component.name}Connector`;
 
     static childContextTypes = {
@@ -163,9 +163,7 @@ function ConnectorF(Component, opt = {}) {
 
       return comp;
     }
-  }
-
-  return Connector;
+  });
 }
 
 export default ConnectorF;
