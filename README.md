@@ -251,4 +251,4 @@ export default Connector(
 ```
 
 ## Схема потока дынных
-<img src="docs/shema.png" align="center" width="100" title="Shema" alt="Shema" />
+<img src="docs/shema.png" align="center" width="611" height="657" title="Shema" alt="Shema" />
