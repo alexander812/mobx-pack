@@ -1,66 +1,65 @@
 # mobx-pack
-Library for creating multi-store applications based on Mobx
-
+Library for building an application architecture with multiple stores and Mobx
 
 # Installation
 
-* Installation: `npm install mobx-pack --save`
+`npm install mobx-pack --save`
 
 ## Introduction
 
-При создании веб-приложений на React встаёт вопрос - какой менеджер состояний использовать 
-для разработки придложения, на что стоит обратить внимание. Если никаких специфических требований к приложению нет,
-то разумно взять наиболее популярный вариант, например, Redux и это отличный выбор, впрочем если всё же вас 
-смущает единое хранилище, много лишнего кода, возможные потери по производительности, сложность деления 
-приложения на части с асинхронной подгрузкой, то есть смысл взглянуть на альтернативные варианты.
+When creating web applications on React, the question arises - which state manager to use
+to develop an application. If there are no specific requirements for the application,
+then it's reasonable to take the most popular option, for example, Redux and this is an excellent choice, although if you are still
+confuses a single repository, a lot of superfluous code, possible performance losses, the difficulty of dividing application on a part 
+with asynchronous loading, that is sense to look at alternative variants.
  
-Mobx даёт из коробки, простое api, высокую производительность (в случае если приложение большое и количество обновлений может достигать сотен раз в секунду это может быть решающим фактором), возможность использовать привычный ООП подход, 
-простой способ связывания состояния с компонентами, однако Mobx не решает проблему организации потока данных и 
-деления на части большого приложения. 
+Mobx gives, simple api, high performance (in case the application is large and the number of updates can reach hundreds of times 
+per second this can be a decisive factor), the ability to use the familiar OOP approach,
+ a simple way to link the state to components, but Mobx does not solve the problem of organizing the data flow and
+division into parts of a large application.
 
-Mobx-pack - это маленькая библиотека, которая решает некоторые проблемы построения архитектуры больших приложений, которые 
-возникают у разработчика при использовании mobx. 
+Mobx-pack is a small library that solves some problems of building the architecture of large applications based on Mobx.
 
-## Задачи, которые решает mobx-pack
+## The problems that are solved by mobx-pack
 
-- коммуникация между хранилищами, в том числе с загружаемыми асинхронно
-- взаимодействие с серверной частью
-- порядок инициации хранилищ
-- разделние ui состоний с бизнес логикой
-- организация доступа из одного хранилища к другому
-- организация доступа из компонента к  хранилищу
-- динамическое создание хранилищ
+- communication between stores, services, including in the case of asynchronous loading
+- interaction with the server
+- stores initialization order
+- separation of ui states and business logic
+- organization of access from one store to another
+- dynamic store creation
 
 ## Binder
-Binder - это класс, который связывает друг с другом сервисы и хранилища приложения. При инициации каждый экземпляр сервиса 
-привязывается к Binder и передаёт в него опции, в которых описано следующее:
+Binder is a class that links the services and stores of an application to each other. When initialized, each instance of the service
+binds to the Binder and passes to it options that describe the following:
 
-- уникальное имя (bindAs)
-- api (ссылки на методы по которым можно обращаться к сервису)
-- поля, которые нужно импортировать из других сервисов (importData)
-- поля, которые экспортирует сервис (exportData)
-- ожидание инициализации других сервисов (waitFor)
-и др.
 
-##Сервисы и хранилища (store)
+- unique name (bindAs)
+- api (links to methods by which you can access the service)
+- fields that need to be imported from other services (importData)
+- fields that the service exports (exportData)
+- waiting for the initialization of other services (waitFor)
+etc.
 
-В приложении есть структуры данных, которые описывают бизнесс логику, в частности модели, которые приходят с сервера. 
-Эти данные храняться в **сервисах**. Задача сервисов поддержка в актуальном состоянии моделей приложения, обмен данными 
-с сервером, с помошью клиента. Экземпляр сервиса является синглтоном.
+##Services and stores
+In the application, there are data structures that describe business logic, in particular models that received from the server.
+This data is stored in **services**. The task of the services is the support in the actual state of the application models, data exchange
+with the server, by the client. A service instance is a singleton.
 
-Также есть состояния, которые относяться к интерфейсу и могут использоваться между разными компонентами, такие состояния
-находяться в хранилищах (сторах) и могут создаваться динамически при монтировании компонента.
+There are also states that relate to the ui and can be used between different components, such states
+are stored in stores and can be created dynamically when the component is mounted.
 
-В mobx-pack есть BaseStore - это класс, который является прототипом для сревисов и хранилищ.
+In mobx-pack there is BaseStore - this is the class that is the prototype for the services and stores.
 
-## Жизненный цикл сервиса
+## Service Life Cycle
 
-Так как сервис синглтон модуль, в котором он описан возврашает по умолчанию экзкмпляр класса сервиса.
-Для инициализации сервиса вызывается метод `service.start()`, который возвращает Promise, 
-так как сервис стартуя может отправлять запросы для инициации данных. Во время вызыва этого 
-метода сервис привязывается к Binder и "сообщает" о себе другим частям приложения.
-Так же есть метод `service.stop()` для того, чтобы,  отписаться от Binder, закрыть сокет соединение и т. д..  
-В сервисе есть методы `onStart` и `onStop`, для описания соответствующих действий. 
+To initiate a service, the method `service.start("entryPoint")`, which return Promise, 
+since the service could send requests to initiate data, till it is starting. 
+The `start` method takes the string identifier of the service initiator as an argument. While calling this
+The service method is bound to the Binder and reports itself to other parts of the application.
+There is also a method `service.stop (" entryPoint ")` in order to unsubscribe from Binder, close the socket connection etc.. 
+The `stop` method takes the string identifier of the service initiator as an argument. 
+In the service there are methods `onStart` and` onStop`, for describing the corresponding actions.
 
 ```javascript
 class UserService extends BaseStore {
@@ -80,17 +79,19 @@ class UserService extends BaseStore {
 ```
 
 
-## Жизненный цикл хранилища (store)
-Отличие хранилища от сервиса только в том, что оно создаётся динамически при монтировании компонента и так же автоматически 
-удаляется. 
+## Store Life Cycle
+The only difference between store and service is that it is created dynamically when the component is mounted and also automatically
+is deleted.
 
 ## Connector
-Connector - это декоратор обёрнутый в observer (react-mobx), который принимает на вход компонент и опции и возвращает компонент
-с дополнительными возможностями. Connector может делать следующее:
-- создавать хранилище
-- вызывать `start` сервисов и не отрисовыввать компоннет, пока не разрешился Promise
-- собирать поля из стора и сервисов для передачи в компоннет
-- передавать api методы из хранилища в компонент
+
+Connector is a decorator wrapped in an observer (react-mobx), which takes on the input a component and options and returns a component
+with additional features. The Connector can do the following:
+
+- create store
+- call `start` services and do not render components until Promise is not resolved
+- collect fields from the store and the services for transfer to the component
+- transfer api methods from the store to the component
 
 ```javascript
 export default Connector(
@@ -109,12 +110,12 @@ export default Connector(
   },
 );
 ```
-Использование Connector позволяет делать компоненты, которые он оборачивает максимально "тупыми" 
-их можно использовать повторно в другом окружении.
 
+Using Connector allows you to make the components that it wraps as "low-order"
+they can be reused in another environment.
 
-## Коммуникации между сервисами
-Сервис А может получить значения полей из сервиса Б, но это должно быть описано следующим образом:
+## Communication between services
+Service A can retrieve field values from service B, but this should be described as follows:
 
 ```javascript
 class BService extends BaseStore {
@@ -140,11 +141,12 @@ class AService extends BaseStore {
   };
 }
 ```
-Когда сервисы подписываються в Binder, тот не копирует данные, а создаёт переменую в сервисе A `userName`, которая
-является readOnly ссылкой на поле сервиса B `name` , когда сервис отвязывается Binder удаляет ссылки. Так как это ссылка, то
- переменную можно использовать в observe (mobx) и реакция на их изменение будет срабатывать.
 
-Изменить сервис извне можно только вызвав метод callApi, который обратиться к api другого сервиса:
+When services subscribe to Binder, it does not copy data, but creates a variable in the service A `userName`, which
+is a readOnly reference to the field `name` of the service B, when the service is unbinded, Binder deletes the links.
+Since this is a link, then the variable can be used in observe (mobx) and the reactions to their change will work.
+
+You can change the service from the outside only by calling the callApi method, which calls the api of another service:
 
 ```javascript
 class BService extends BaseStore {
@@ -174,7 +176,7 @@ class AService extends BaseStore {
   }
 }
 ```
-Узнать об инициализации другого сервиса можно с помошью коллбека:
+To be notified about the initialization of another service, you can use the callback:
 
 ```javascript
 class AService extends BaseStore {
@@ -189,10 +191,10 @@ class AService extends BaseStore {
 }
 ```
 
-## Порядок инициализации сервисов
+## The order of services initialization
 
-Иногда когда один сервис зависин от другого нужно чтобы `onStart` сервиса вызывался после того как другой сервис
-стартовал, для этого можно использовать конструкцию waitFor:
+Sometimes when one service depends on another, it is necessary that the `onStart` service be called after another service
+started, for this you can use the waitFor construct:
 
 ```javascript
 class AService extends BaseStore {
@@ -207,10 +209,11 @@ class AService extends BaseStore {
 }
 ```
 
-## Изменение данных из компонентов
-Как уже говорилось выше компоннеты через Connector подписываются на изменение стейта приложения observer вызывает 
-forceUpdate, когда наблюдаемые поля меняются, но чтобы что то поменять в состоянии, компонент должен вызвать api метод 
-хранилища, причём api сервисов недоступно компонентам, только хранилищам и другим сервисам:
+## Modifying data from components
+As mentioned above, the components through Connector subscribe to the application state change, observer calls
+forceUpdate, when the observed fields change, but to change something in the state, the component must call the api method
+of the store, but services api is not available to components, only for stores and other services:
+
 ```javascript
 
 class Store extends BaseStore {
@@ -250,5 +253,9 @@ export default Connector(
 );
 ```
 
-## Схема потока дынных
-<img src="docs/shema.png" align="center" width="611" height="657" title="Shema" alt="Shema" />
+## Data flow scheme
+<img src="docs/shema.png" align="center" width="611" height="657" title="scheme" alt="scheme" />
+
+##Links
+- <a href="https://github.com/alexander812/mobx-pack-starter" target="_blank">Boilerplate project</a>
+- <a href="https://opencollective.com/mobx/sponsor/0/website" target="_blank">Mobx</a>
